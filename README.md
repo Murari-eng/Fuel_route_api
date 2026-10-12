@@ -22,7 +22,6 @@ The API accepts a POST request with start and end coordinates. It:
 - Django 5.x
 - Django REST Framework
 - pandas
-- requests (or `openrouteservice` if using ORS)
 
 Install dependencies:
 
