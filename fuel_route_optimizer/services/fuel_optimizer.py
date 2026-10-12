@@ -317,7 +317,7 @@ def optimize_fuel_route(
         "estimated_total_gallons": round(
             route_distance / mpg, 2
         ),
-        "estimated_fuel_cost": round(total_fuel_cost, 2),
+        "estimated_fuel_cost": round(total_fuel_cost,2),
         "fuel_stops": stop_results,
         "stations_considered": len(candidates),
         "routing_provider": "OSRM",

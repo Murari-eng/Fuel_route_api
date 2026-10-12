@@ -1,9 +1,8 @@
-
 from django.db import models
 
 
 class FuelStation(models.Model):
-    station_id = models.CharField(max_length=100, unique=True)
+    station_id = models.CharField(max_length=100)
     name = models.CharField(max_length=255)
     latitude = models.FloatField()
     longitude = models.FloatField()
@@ -19,3 +18,9 @@ class FuelStation(models.Model):
 
     class Meta:
         ordering = ["price_per_gallon", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['station_id'],
+                name='unique_station_id'
+            )
+        ]

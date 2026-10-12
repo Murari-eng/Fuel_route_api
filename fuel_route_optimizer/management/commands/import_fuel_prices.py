@@ -12,7 +12,7 @@ class Command(BaseCommand):
         path = settings.BASE_DIR / "data" / "fuel_prices_enriched.csv"
 
         if not path.exists():
-            self.stderr.write(self.style.ERROR(f"❌ File not found: {path}"))
+            self.stderr.write(self.style.ERROR(f"File not found: {path}"))
             return
 
         self.stdout.write(f"📖 Reading {path}")
@@ -25,7 +25,6 @@ class Command(BaseCommand):
         with open(path, newline="", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                # --- Map CSV columns to model fields ---
                 station_id = (row.get("OPIS Truckstop ID") or "").strip()
                 name       = (row.get("Truckstop Name") or "").strip()
                 address    = (row.get("Address") or "").strip()
@@ -34,13 +33,11 @@ class Command(BaseCommand):
                 lat_raw    = (row.get("latitude") or "").strip()
                 lon_raw    = (row.get("longitude") or "").strip()
 
-                # Skip rows missing essentials
                 if not (station_id and name and price_raw and lat_raw and lon_raw):
                     skipped += 1
                     continue
 
-                # Dedupe (OPIS has duplicate rows like two PILOT #1243)
-                key = (station_id, name)
+                key = station_id
                 if key in seen:
                     continue
                 seen.add(key)
@@ -65,5 +62,5 @@ class Command(BaseCommand):
 
         FuelStation.objects.bulk_create(batch, batch_size=1000)
         self.stdout.write(self.style.SUCCESS(
-            f"✅ Loaded {len(batch)} stations (skipped {skipped})"
+            f"Loaded {len(batch)} stations (skipped {skipped})"
         ))

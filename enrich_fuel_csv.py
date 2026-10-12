@@ -65,20 +65,14 @@ def geocode(city, state):
 def main():
     input_path = Path(INPUT_CSV)
     if not input_path.exists():
-        print(f"❌ {INPUT_CSV} not found")
+        print(f"{INPUT_CSV} not found")
         return
 
-    # 1. Read the fuel CSV
-    print(f"📖 Reading {INPUT_CSV}")
     with open(input_path, newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
         fieldnames = reader.fieldnames
 
-    print(f"   → {len(rows)} rows")
-    print(f"   → columns: {fieldnames}")
-
-    # Detect column names (they might have spaces or different case)
     def find_col(*candidates):
         for c in fieldnames:
             for cand in candidates:
@@ -90,14 +84,10 @@ def main():
     state_col = find_col("state")
 
     if not city_col or not state_col:
-        print(f"❌ Could not find City/State columns in {fieldnames}")
+        print(f"Could not find City/State columns in {fieldnames}")
         return
-
-    print(f"   → using city='{city_col}', state='{state_col}'")
-
-    # 2. Find unique (city, state) pairs that need geocoding
     cache = load_cache()
-    print(f"📦 Cache has {len(cache)} entries")
+    print(f"Cache has {len(cache)} entries")
 
     unique_cities = set()
     for row in rows:
@@ -107,10 +97,6 @@ def main():
             unique_cities.add(f"{city}|{state}")
 
     missing = sorted(c for c in unique_cities if c not in cache)
-    print(f"🌎 {len(unique_cities)} unique city/state pairs, "
-          f"{len(missing)} need geocoding")
-
-    # 3. Geocode missing ones
     for i, key in enumerate(missing, 1):
         city, state = key.split("|", 1)
         print(f"[{i}/{len(missing)}] {city}, {state} ... ", end="", flush=True)
@@ -120,21 +106,14 @@ def main():
             cache[key] = {"lat": coords[0], "lon": coords[1]}
             print(f"✅ {coords[0]:.4f}, {coords[1]:.4f}")
         else:
-            cache[key] = None   # cache failure so we don't retry forever
-            print("❌")
-
-        # Save cache every 20 cities (in case you Ctrl+C)
+            cache[key] = None
         if i % 20 == 0:
             save_cache(cache)
-
-        # Respect Nominatim's 1 req/sec rate limit
         time.sleep(1.1)
 
     save_cache(cache)
-    print(f"\n💾 Cache saved ({len(cache)} entries)")
-
-    # 4. Write enriched CSV
-    print(f"✍️  Writing {OUTPUT_CSV}")
+    print(f"\nCache saved ({len(cache)} entries)")
+    print(f"Writing {OUTPUT_CSV}")
     new_fields = list(fieldnames) + ["latitude", "longitude"]
 
     matched = 0
@@ -159,15 +138,6 @@ def main():
                 unmatched += 1
 
             writer.writerow(row)
-
-    print()
-    print("=" * 60)
-    print(f"✅ Done")
-    print(f"   Matched:   {matched}")
-    print(f"   Unmatched: {unmatched}")
-    print(f"   Output:    {OUTPUT_CSV}")
-    print("=" * 60)
-
 
 if __name__ == "__main__":
     main()
